@@ -3,7 +3,7 @@ from tkinter import filedialog, messagebox, ttk
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
+import scipy.signal as signal
 class RFSignalAnalyzerApp:
     def __init__(self, root):
         self.root = root
