@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
+import csv
 
 class AnalizadorRFApp:
     def __init__(self, root):
@@ -44,57 +45,64 @@ class AnalizadorRFApp:
         archivo = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
         if archivo:
             try:
-                self.datos = pd.read_csv(archivo, on_bad_lines='skip')  # Ignorar líneas problemáticas
+                self.datos = pd.read_csv(archivo, delimiter=";", skiprows=681)  # Ignorar líneas problemáticas
                 print(self.datos)
                 self.procesar_datos()
             except pd.errors.ParserError:
                 messagebox.showerror("Error", "El archivo CSV tiene un formato incorrecto.")
+            
+        
+        
 
 
     # Función para procesar y graficar los datos
     def procesar_datos(self):
-        # Cálculos automáticos (ejemplo básico)
-        frecuencia_central = self.datos['frecuencia'].mean()  # Frecuencia central aproximada
-        snr = self.calcular_snr(self.datos['potencia'], self.datos['ruido'])  # SNR (Relación señal-ruido)
+        pass
+        # # Cálculos automáticos (ejemplo básico)
+        # frecuencia_central = self.datos['frecuencia'].mean()  # Frecuencia central aproximada
+        # snr = self.calcular_snr(self.datos['potencia'], self.datos['ruido'])  # SNR (Relación señal-ruido)
 
-        # Mostrar los resultados en la GUI
-        self.resultados_var.set(f"Frecuencia central: {frecuencia_central:.2f} Hz\nSNR: {snr:.2f} dB")
+        # # Mostrar los resultados en la GUI
+        # self.resultados_var.set(f"Frecuencia central: {frecuencia_central:.2f} Hz\nSNR: {snr:.2f} dB")
 
-        # Graficar el espectrograma inicial
-        self.actualizar_grafico()
+        # # Graficar el espectrograma inicial
+        # self.actualizar_grafico()
 
     # Función para calcular la relación señal-ruido (SNR)
     def calcular_snr(self, potencia, ruido):
-        return 10 * np.log10(np.mean(potencia) / np.mean(ruido))
+        pass
+        # return 10 * np.log10(np.mean(potencia) / np.mean(ruido))
 
     # Función para actualizar los gráficos según los filtros seleccionados
     def actualizar_grafico(self, *args):
-        if self.datos is not None:
-            # Filtrar los datos según el rango de frecuencias seleccionado
-            min_freq = self.freq_min.get()
-            max_freq = self.freq_max.get()
-            datos_filtrados = self.datos[(self.datos['frecuencia'] >= min_freq) & (self.datos['frecuencia'] <= max_freq)]
+        pass
+        # if self.datos is not None:
+        #     # Filtrar los datos según el rango de frecuencias seleccionado
+        #     min_freq = self.freq_min.get()
+        #     max_freq = self.freq_max.get()
+        #     datos_filtrados = self.datos[(self.datos['frecuencia'] >= min_freq) & (self.datos['frecuencia'] <= max_freq)]
 
-            # Limpiar el gráfico anterior
-            self.ax.clear()
+        #     # Limpiar el gráfico anterior
+        #     self.ax.clear()
 
-            # Graficar el espectrograma filtrado
-            self.ax.plot(datos_filtrados['frecuencia'], datos_filtrados['potencia'], label="Potencia")
-            self.ax.set_title('Espectrograma (Filtrado)')
-            self.ax.set_xlabel('Frecuencia (MHz)')
-            self.ax.set_ylabel('Potencia (dBm)')
-            self.ax.legend()
+        #     # Graficar el espectrograma filtrado
+        #     self.ax.plot(datos_filtrados['frecuencia'], datos_filtrados['potencia'], label="Potencia")
+        #     self.ax.set_title('Espectrograma (Filtrado)')
+        #     self.ax.set_xlabel('Frecuencia (MHz)')
+        #     self.ax.set_ylabel('Potencia (dBm)')
+        #     self.ax.legend()
 
-            # Actualizar el gráfico
-            self.canvas.draw()
+        #     # Actualizar el gráfico
+        #     self.canvas.draw()
 
     # Función para exportar los resultados
     def exportar_resultados(self):
-        archivo = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF file", "*.pdf")])
-        if archivo:
-            with open(archivo, 'w') as f:
-                f.write(self.resultados_var.get())
-            messagebox.showinfo("Exportar", "Resultados exportados exitosamente.")
+        pass
+        # archivo = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF file", "*.pdf")])
+        # if archivo:
+        #     with open(archivo, 'w') as f:
+        #         f.write(self.resultados_var.get())
+        #     messagebox.showinfo("Exportar", "Resultados exportados exitosamente.")
 
 # Inicializar la aplicación
 if __name__ == "__main__":
