@@ -48,15 +48,21 @@ class AnalizadorRFApp:
             try:
                 self.datos = pd.read_csv(archivo, delimiter=";", skiprows=681)  # Ignorar líneas problemáticas
                 print(self.datos)
-                self.procesar_datos()
+                
+                columnas = self.datos.columns.to_list()
+                for columna in columnas:
+                    if self.datos[columna].dtype == 'object':
+                        self.datos[columna] = pd.to_numeric(self.datos[columna].str.replace(',', '.'))
+                        
+                print(self.datos.describe())
+                print(self.datos.dtypes)
+
+                #self.procesar_datos()
                 df = self.datos
-                # 1. Asegurarse de que las frecuencias están correctamente formateadas como números
-                df['Frequency [Hz]'] = df['Frequency [Hz]'].str.replace(',', '').astype(float)
 
                 # 2. Limpiar las columnas numéricas para el heatmap (excluyendo las columnas innecesarias)
                 df_clean = df.drop(columns=['Unnamed: 1024'], errors='ignore')  # Excluir columna innecesaria
                 df_clean = df_clean.drop(columns=['Frequency [Hz]'])  # No incluir la columna de frecuencias en los datos numéricos
-                df_clean = df_clean.apply(lambda x: x.str.replace(',', '.')).astype(float)  # Convertir magnitudes a float
 
                 # 3. Configuración del heatmap, usando las frecuencias como etiquetas en el eje Y
                 plt.figure(figsize=(10, 8))
@@ -76,13 +82,12 @@ class AnalizadorRFApp:
 
     # Función para procesar y graficar los datos
     def procesar_datos(self):
-        pass
-        # # Cálculos automáticos (ejemplo básico)
-        # frecuencia_central = self.datos['frecuencia'].mean()  # Frecuencia central aproximada
+        # Cálculos automáticos (ejemplo básico)
+        frecuencia_central = self.datos['Frequency [Hz]'].mean()  # Frecuencia central aproximada
         # snr = self.calcular_snr(self.datos['potencia'], self.datos['ruido'])  # SNR (Relación señal-ruido)
 
-        # # Mostrar los resultados en la GUI
-        # self.resultados_var.set(f"Frecuencia central: {frecuencia_central:.2f} Hz\nSNR: {snr:.2f} dB")
+        # Mostrar los resultados en la GUI
+        self.resultados_var.set(f"Frecuencia central: {frecuencia_central:.2f} Hz\nSNR:  dB")
 
         # # Graficar el espectrograma inicial
         # self.actualizar_grafico()
