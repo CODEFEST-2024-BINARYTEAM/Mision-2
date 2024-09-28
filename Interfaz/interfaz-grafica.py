@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 import csv
+import seaborn as sns
 
 class AnalizadorRFApp:
     def __init__(self, root):
@@ -48,6 +49,24 @@ class AnalizadorRFApp:
                 self.datos = pd.read_csv(archivo, delimiter=";", skiprows=681)  # Ignorar líneas problemáticas
                 print(self.datos)
                 self.procesar_datos()
+                df = self.datos
+                # 1. Asegurarse de que las frecuencias están correctamente formateadas como números
+                df['Frequency [Hz]'] = df['Frequency [Hz]'].str.replace(',', '').astype(float)
+
+                # 2. Limpiar las columnas numéricas para el heatmap (excluyendo las columnas innecesarias)
+                df_clean = df.drop(columns=['Unnamed: 1024'], errors='ignore')  # Excluir columna innecesaria
+                df_clean = df_clean.drop(columns=['Frequency [Hz]'])  # No incluir la columna de frecuencias en los datos numéricos
+                df_clean = df_clean.apply(lambda x: x.str.replace(',', '.')).astype(float)  # Convertir magnitudes a float
+
+                # 3. Configuración del heatmap, usando las frecuencias como etiquetas en el eje Y
+                plt.figure(figsize=(10, 8))
+                sns.heatmap(df_clean, cmap="YlGnBu", annot=False, cbar=True, yticklabels=df['Frequency [Hz]'])
+
+                # 4. Configuración del gráfico
+                plt.title("Heatmap de Magnitudes en dBm con Frecuencias")
+                plt.xlabel("Muestras")
+                plt.ylabel("Frecuencia [Hz]")
+                plt.show()
             except pd.errors.ParserError:
                 messagebox.showerror("Error", "El archivo CSV tiene un formato incorrecto.")
             
