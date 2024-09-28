@@ -6,6 +6,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 import csv
 import seaborn as sns
+from matplotlib.backends.backend_pdf import PdfPages  # Para guardar en PDF
 
 class AnalizadorRFApp:
     def __init__(self, root):
@@ -21,11 +22,11 @@ class AnalizadorRFApp:
         self.btn_cargar.pack()
 
         # Crear slider para rango de frecuencias
-        self.freq_min = tk.DoubleVar(value=400)
-        self.freq_max = tk.DoubleVar(value=450)
-        self.slider_min = tk.Scale(root, from_=400, to=480, orient="horizontal", label="Frecuencia mínima", variable=self.freq_min, command=self.actualizar_grafico)
+        self.freq_min = tk.DoubleVar(value=400000000)
+        self.freq_max = tk.DoubleVar(value=450000000)
+        self.slider_min = tk.Scale(root, from_=400000000, to=480000000, orient="horizontal", label="Frecuencia mínima", variable=self.freq_min, command=self.actualizar_grafico)
         self.slider_min.pack()
-        self.slider_max = tk.Scale(root, from_=400, to=480, orient="horizontal", label="Frecuencia máxima", variable=self.freq_max, command=self.actualizar_grafico)
+        self.slider_max = tk.Scale(root, from_=400000000, to=480000000, orient="horizontal", label="Frecuencia máxima", variable=self.freq_max, command=self.actualizar_grafico)
         self.slider_max.pack()
 
         # Área para mostrar resultados
@@ -34,8 +35,11 @@ class AnalizadorRFApp:
         self.label_resultados.pack()
 
         # Botón para exportar resultados
-        self.btn_exportar = tk.Button(root, text="Exportar Resultados", command=self.exportar_resultados)
-        self.btn_exportar.pack()
+        self.btn_exportar_pdf = tk.Button(root, text="Exportar Gráficos a PDF", command=self.exportar_graficos_pdf)
+        self.btn_exportar_pdf.pack()
+
+        self.btn_exportar_csv = tk.Button(root, text="Exportar Datos a CSV", command=self.exportar_datos_csv)
+        self.btn_exportar_csv.pack()
 
         # Lienzo de Matplotlib
         self.canvas = FigureCanvasTkAgg(self.fig, master=root)
@@ -57,7 +61,7 @@ class AnalizadorRFApp:
                 print(self.datos.describe())
                 print(self.datos.dtypes)
 
-                #self.procesar_datos()
+                self.procesar_datos()
                 df = self.datos
 
                 # 2. Limpiar las columnas numéricas para el heatmap (excluyendo las columnas innecesarias)
@@ -88,9 +92,10 @@ class AnalizadorRFApp:
 
         # Mostrar los resultados en la GUI
         self.resultados_var.set(f"Frecuencia central: {frecuencia_central:.2f} Hz\nSNR:  dB")
+        print(frecuencia_central)
 
         # # Graficar el espectrograma inicial
-        # self.actualizar_grafico()
+        self.actualizar_grafico()
 
     # Función para calcular la relación señal-ruido (SNR)
     def calcular_snr(self, potencia, ruido):
@@ -99,34 +104,73 @@ class AnalizadorRFApp:
 
     # Función para actualizar los gráficos según los filtros seleccionados
     def actualizar_grafico(self, *args):
-        pass
-        # if self.datos is not None:
-        #     # Filtrar los datos según el rango de frecuencias seleccionado
-        #     min_freq = self.freq_min.get()
-        #     max_freq = self.freq_max.get()
-        #     datos_filtrados = self.datos[(self.datos['frecuencia'] >= min_freq) & (self.datos['frecuencia'] <= max_freq)]
+        if self.datos is not None:
+            # Filtrar los datos según el rango de frecuencias seleccionado
+            min_freq = self.freq_min.get()
+            max_freq = self.freq_max.get()
+            datos_filtrados = self.datos[(self.datos['Frequency [Hz]'] >= min_freq) & (self.datos['Frequency [Hz]'] <= max_freq)]
 
-        #     # Limpiar el gráfico anterior
-        #     self.ax.clear()
+            # Limpiar el gráfico anterior
+            self.ax.clear()
 
-        #     # Graficar el espectrograma filtrado
-        #     self.ax.plot(datos_filtrados['frecuencia'], datos_filtrados['potencia'], label="Potencia")
-        #     self.ax.set_title('Espectrograma (Filtrado)')
-        #     self.ax.set_xlabel('Frecuencia (MHz)')
-        #     self.ax.set_ylabel('Potencia (dBm)')
-        #     self.ax.legend()
+            # Graficar todas las columnas que empiezan con 'Magnitude [dBm]'
+            columnas_magnitud = [col for col in self.datos.columns if col.startswith('Magnitude [dBm]')]
+            print(datos_filtrados['Magnitude [dBm]'])
 
-        #     # Actualizar el gráfico
-        #     self.canvas.draw()
+            
+            self.ax.plot( datos_filtrados['Frequency [Hz]'], datos_filtrados['Magnitude [dBm]'], label='Magnitude [dBm]')
+
+            # Configurar etiquetas y leyenda
+            self.ax.set_title('Espectrograma (Filtrado)')
+            self.ax.set_xlabel('Frecuencia (MHz)')
+            self.ax.set_ylabel('Potencia (dBm)')
+            self.ax.legend()
+
+            # Actualizar el gráfico
+            self.canvas.draw()
+            
+    # Función para exportar gráficos a PDF
+    def exportar_graficos_pdf(self):
+        archivo = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF file", "*.pdf")])
+        if archivo:
+            try:
+                with PdfPages(archivo) as pdf:
+                    # Limpiar el gráfico por si hay artefactos de un gráfico anterior
+                    self.ax.clear()
+
+                    # Volver a graficar los datos filtrados
+                    min_freq = self.freq_min.get()
+                    max_freq = self.freq_max.get()
+                    datos_filtrados = self.datos[(self.datos['Frequency [Hz]'] >= min_freq) & (self.datos['Frequency [Hz]'] <= max_freq)]
+                    columnas_magnitud = [col for col in self.datos.columns if col.startswith('Magnitude [dBm]')]
+
+                    for columna in columnas_magnitud:
+                        self.ax.plot(datos_filtrados['Frequency [Hz]'], datos_filtrados[columna], label=columna)
+
+                    # Etiquetas y leyenda
+                    self.ax.set_title('Espectrograma (Filtrado)')
+                    self.ax.set_xlabel('Frecuencia (MHz)')
+                    self.ax.set_ylabel('Potencia (dBm)')
+                    self.ax.legend()
+
+                    # Guardar la figura en el PDF
+                    pdf.savefig(self.fig)  # Guardar el gráfico actual en el PDF
+                    plt.close(self.fig)  # Cerrar la figura para evitar artefactos
+
+                messagebox.showinfo("Exportar", "Gráficos exportados exitosamente en PDF.")
+            except Exception as e:
+                messagebox.showerror("Error", f"Error al exportar los gráficos: {str(e)}")
+
 
     # Función para exportar los resultados
-    def exportar_resultados(self):
-        pass
-        # archivo = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF file", "*.pdf")])
-        # if archivo:
-        #     with open(archivo, 'w') as f:
-        #         f.write(self.resultados_var.get())
-        #     messagebox.showinfo("Exportar", "Resultados exportados exitosamente.")
+    def exportar_datos_csv(self):
+        archivo = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV file", "*.csv")])
+        if archivo:
+            min_freq = self.freq_min.get()
+            max_freq = self.freq_max.get()
+            datos_filtrados = self.datos[(self.datos['Frequency [Hz]'] >= min_freq) & (self.datos['Frequency [Hz]'] <= max_freq)]
+            datos_filtrados.to_csv(archivo, index=False)
+            messagebox.showinfo("Exportar", "Datos exportados exitosamente en CSV.")
 
 # Inicializar la aplicación
 if __name__ == "__main__":
