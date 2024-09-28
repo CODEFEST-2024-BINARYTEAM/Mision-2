@@ -19,7 +19,9 @@ Este proyecto requiere de las siguientes bibliotecas de Python:
 - matplotlib: Para la generación de gráficos y exportación a PDF.
 - seaborn: Biblioteca de visualización de datos que complementa a matplotlib.
 - numpy: Para operaciones matemáticas (instalada automáticamente con pandas).
-  
+### Recursos 
+En resources se encuentra el ejemplo de datos utilizados, el pdf que genera el sistema y el dema correspondiente de la aplicacion
+
 ### Instalación de dependencias
 
 Para instalar las dependencias necesarias, ejecuta el siguiente comando:
